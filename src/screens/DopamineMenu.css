@@ -1,0 +1,236 @@
+.dopamine {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+/* ── Header ──────────────────────────────── */
+.dopamine__header {
+  background: #7C3AED;
+  padding: 20px 16px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.dopamine__back {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  padding: 4px 0;
+  width: 64px;
+  text-align: left;
+}
+
+.dopamine__header-center {
+  text-align: center;
+  flex: 1;
+}
+
+.dopamine__title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.dopamine__subtitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  margin-top: 2px;
+}
+
+/* ── Tabs ────────────────────────────────── */
+.dopamine__tabs {
+  display: flex;
+  overflow-x: auto;
+  background: #6D28D9;
+  padding: 0 8px 0;
+  gap: 2px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.dopamine__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.dopamine__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 14px 12px;
+  flex-shrink: 0;
+  color: rgba(255,255,255,0.6);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-bottom: 3px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.dopamine__tab--active {
+  color: #fff;
+  border-bottom-color: #fff;
+}
+
+.dopamine__tab-emoji {
+  font-size: 18px;
+}
+
+.dopamine__tab-name {
+  white-space: nowrap;
+}
+
+/* ── Main ────────────────────────────────── */
+.dopamine__main {
+  flex: 1;
+  padding: 20px 16px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Category info ───────────────────────── */
+.dopamine__cat-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.dopamine__cat-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.dopamine__cat-time {
+  font-size: 12px;
+  font-weight: 600;
+  color: #7C3AED;
+  background: #F5F3FF;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  margin-left: 10px;
+}
+
+/* ── Rolled result ───────────────────────── */
+.dopamine__result {
+  background: #F5F3FF;
+  border: 2px solid #7C3AED;
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  text-align: center;
+  animation: pop-in 0.3s ease both;
+}
+
+.dopamine__result--locked {
+  background: #EDE9FE;
+  border-color: #5B21B6;
+}
+
+.dopamine__result-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #7C3AED;
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+}
+
+.dopamine__result-item {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.dopamine__result-rerolls {
+  font-size: 12px;
+  color: #7C3AED;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+/* ── Roll button ─────────────────────────── */
+.dopamine__roll-row {
+  display: flex;
+  justify-content: center;
+}
+
+.dopamine__roll-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: #7C3AED;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  box-shadow: var(--shadow-md);
+  transition: background 0.15s, transform 0.1s;
+}
+
+.dopamine__roll-btn:active {
+  background: #6D28D9;
+  transform: scale(0.97);
+}
+
+.dopamine__reset-btn {
+  padding: 14px 32px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: #7C3AED;
+  font-size: 15px;
+  font-weight: 600;
+  border: 2px solid #7C3AED;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.dopamine__reset-btn:active {
+  background: #F5F3FF;
+  transform: scale(0.97);
+}
+
+/* ── Item list ───────────────────────────── */
+.dopamine__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dopamine__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  color: var(--text-primary);
+  border: 1.5px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.dopamine__item--highlighted {
+  background: #F5F3FF;
+  border-color: #7C3AED;
+  font-weight: 600;
+}
+
+.dopamine__item-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #C4B5FD;
+  flex-shrink: 0;
+}
+
+.dopamine__item--highlighted .dopamine__item-dot {
+  background: #7C3AED;
+}

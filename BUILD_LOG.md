@@ -1,0 +1,264 @@
+# DAM — Build Log & Xcode Handoff Document
+
+**App:** DAM (Daily Anchor Method)  
+**PWA Build Date:** May 2026  
+**Stack:** React 18 + Vite + React Router v6  
+**Target:** iOS native (SwiftUI) — Xcode handoff planned for following weekend  
+**PRD Version:** v1.0 (May 15, 2026)
+
+---
+
+## 1. Scope Decisions
+
+### What was built in this PWA (v1 scope, 4 screens)
+| Screen | Route | Notes |
+|---|---|---|
+| Home | `#/` | Two Next Actions, Behind On Tasks (collapsed), empty state |
+| Add Task | `#/add` | Text input, optional duration, four priority labels |
+| Dopamine Menu | `#/dopamine` | Five category tabs, Roll mechanic, 3 re-rolls max |
+| Derail Modal | Overlay (no route) | Bottom sheet, 6 categories, confirmed response, logged to localStorage |
+
+### What was explicitly excluded (per PRD §17)
+- Side menu / full navigation drawer (navigating back uses `←` header button in this PWA)
+- Mad Dash mode
+- Mantra Library
+- Daily Log / voice journaling
+- Wind-down routine
+- Derail train animation (deferred to v2 per PRD)
+- AI-driven task prioritization (simulated: sort by priority label → creation time)
+- Voice input (text-only in PWA; Apple Speech framework in Xcode)
+- Completed Tasks screen
+- Repeating tasks
+- Hard/soft deadlines
+- Fire Scale visual (conversational only in v1 per PRD)
+
+---
+
+## 2. Architecture Decisions
+
+### Routing: HashRouter
+- **Why:** PWA served as static files. HashRouter (`#/path`) requires zero server config. BrowserRouter would 404 on direct-to-path loads without a server rewrite rule.
+- **Xcode note:** Replace with SwiftUI `NavigationStack`. Routes map directly to Views.
+
+### Data: localStorage via `useLocalStorage` hook
+- **Why:** PRD §16.3 — all data stored locally by default. No backend in v1.
+- **Keys used:** `dam_tasks` (array of Task), `dam_derails` (array of DerailEntry)
+- **Xcode note:** Replace with SwiftData (iOS 17+) or Core Data. Schema is identical — see §3 below.
+
+### State management: React `useState` + `useCallback` in `App.jsx`
+- **Why:** Tasks and derails are app-level state shared across screens. No Redux/Zustand needed at this scale.
+- **Xcode note:** Use `@EnvironmentObject` or `@Observable` (Swift 5.9+) for the equivalent.
+
+### Styling: Plain CSS with custom properties
+- **Why:** Zero dependency, maps directly to SwiftUI design tokens. Every `var(--brand)` maps to a Swift `Color` constant.
+- **No Tailwind / no CSS-in-JS** — intentional for Xcode readability.
+
+### Floating buttons: Fixed-position, bottom-right
+- **Why:** PRD §2.1 — always visible on all screens. Three FABs stacked vertically.
+- **Xcode note:** Use a ZStack overlay on the root ContentView so FABs persist across NavigationStack pushes.
+
+---
+
+## 3. Data Schemas
+
+### Task
+```typescript
+{
+  id: string          // "t_<timestamp>"
+  text: string        // User-entered task description
+  priority: string    // "On Fire" | "Big Rock" | "Easy Ball" | "Back Burner"
+  duration: number | null  // Minutes, user-entered (optional)
+  completed: boolean
+  createdAt: number   // Unix timestamp ms
+  completedAt: number | null
+}
+```
+
+### DerailEntry
+```typescript
+{
+  id: string          // "d_<timestamp>"
+  category: string    // "boredom" | "anxiety" | "hyperfocus" | "fatigue" | "external" | "other"
+  timestamp: number   // Unix timestamp ms
+}
+```
+
+---
+
+## 4. Design Tokens → Swift Color Constants
+
+All design decisions use CSS custom properties defined in `src/index.css`. Direct mapping for Xcode:
+
+| Token | Hex | Swift Name |
+|---|---|---|
+| `--brand` | `#1A56A5` | `Color.damBlue` |
+| `--brand-dark` | `#1244a0` | `Color.damBlueDark` |
+| `--brand-light` | `#e8f0fb` | `Color.damBlueLight` |
+| `--on-fire` | `#EF4444` | `Color.priorityOnFire` |
+| `--big-rock` | `#6366F1` | `Color.priorityBigRock` |
+| `--easy-ball` | `#10B981` | `Color.priorityEasyBall` |
+| `--back-burner` | `#9CA3AF` | `Color.priorityBackBurner` |
+| `--amber` | `#F59E0B` | `Color.amberBehind` |
+| `--bg` | `#F8FAFF` | `Color.appBackground` |
+| `--surface` | `#FFFFFF` | `Color.surface` |
+| `--text-primary` | `#1F2937` | `Color.textPrimary` |
+| `--text-secondary` | `#6B7280` | `Color.textSecondary` |
+| `--text-muted` | `#9CA3AF` | `Color.textMuted` |
+
+---
+
+## 5. Component → SwiftUI View Mapping
+
+| React Component | SwiftUI Equivalent | Notes |
+|---|---|---|
+| `Home.jsx` | `HomeView.swift` | |
+| `AddTask.jsx` | `AddTaskView.swift` | |
+| `DopamineMenu.jsx` | `DopamineMenuView.swift` | |
+| `DerailModal.jsx` | `.sheet()` modifier on root | Bottom sheet — use `.presentationDetents([.medium, .large])` |
+| `FloatingButtons.jsx` | `FloatingButtonsView.swift` in a `ZStack` | |
+| `TaskCard.jsx` | `TaskCardView.swift` | |
+| `.priority-badge` | `PriorityBadge.swift` | Reusable tag component |
+| `Confetti` (in TaskCard) | [`ConfettiSwiftUI`](https://github.com/simibac/ConfettiSwiftUI) or custom `TimelineView` | |
+
+---
+
+## 6. Screen-by-Screen Notes for Xcode
+
+### 6.1 Home Screen
+- **Two Next Actions logic:** Sort incomplete tasks by `PRIORITY_ORDER` (On Fire=0, Big Rock=1, Easy Ball=2, Back Burner=3), then `createdAt` ascending. Take first 2.
+- **Behind On Tasks:** The remainder (index 2+). Amber styling. Collapsed by default (`@State var behindExpanded = false`).
+- **Empty state:** Shown when `tasks.filter { !$0.completed }.isEmpty`. Ghost card is a placeholder with opacity 0.45.
+- **Confetti:** Triggered by `celebrateId` state in parent. 1.8s duration then cleared. CSS `confetti-fall` keyframe → use `withAnimation` + `TimelineView` in SwiftUI.
+- **"I'm doing this now" button:** Sets local `doing` state — no backend event in v1. In Xcode, add a `startedAt` timestamp to the Task model for v2 timer tracking.
+
+### 6.2 Add Task Screen
+- **Validation:** Text must be non-empty AND a priority must be selected before submit button is active.
+- **Priority grid:** 2×2 CSS grid. In SwiftUI: `LazyVGrid(columns: [GridItem(), GridItem()])`.
+- **Duration field:** Optional. Stored as `Int?` minutes. Shows "~X min" in TaskCard.
+- **Navigation:** On submit, calls `onAdd()` then navigates to `/`. In SwiftUI: `dismiss()` environment action.
+
+### 6.3 Dopamine Menu Screen
+- **Pre-loaded items:** Defined in `src/data/dopamineItems.js`. Copy the arrays verbatim into a Swift `DopamineItems.swift` constant file or a bundled JSON.
+- **Roll mechanic:** `Math.random()` pick. Max 3 rolls total (`MAX_REROLLS = 3`). After 3rd roll, button becomes "Start Over". In SwiftUI: `Int.random(in:)`.
+- **Tab bar:** Horizontal scroll. In SwiftUI: `ScrollView(.horizontal)` + `HStack` of tab buttons, or `TabView` with `.tabViewStyle(.page)`.
+- **Re-roll state resets** when switching categories.
+
+### 6.4 Derail Modal
+- **Trigger:** Floating 🚂 button, always visible. In SwiftUI: `@State var derailPresented = false` on root view, `.sheet(isPresented:)`.
+- **Two states:** Category selection → Confirmation. Both within same sheet.
+- **Log on tap:** Category selected → immediately logged → UI transitions to confirmation. No "confirm" step — per PRD "one tap".
+- **Response modes:**
+  - `landing` → "5 minutes, then back" message
+  - `appetizer` → "Quick reset" message + button to open Dopamine Menu
+- **Derail categories stored:** lowercase id (`boredom`, `anxiety`, `hyperfocus`, `fatigue`, `external`, `other`).
+
+---
+
+## 7. Animations & Sound
+
+### Confetti
+- **PWA:** CSS `@keyframes confetti-fall` — 14 `<span>` dots, random position/color/size/delay
+- **Xcode:** Use [ConfettiSwiftUI](https://github.com/simibac/ConfettiSwiftUI) package (MIT). One line: `ConfettiCannon(trigger: $celebrate)`
+
+### Sounds (per PRD §11)
+| Event | Default Sound | Xcode implementation |
+|---|---|---|
+| Task complete | Game sound effect | `AVAudioPlayer` or `SystemSoundID` |
+| Mad Dash subtask (v2) | Regal trumpet | Custom audio asset |
+| Derail tap | Train horn | Custom audio asset |
+
+Sound files not included in PWA v1. Assets to be added to Xcode project's `Resources/Sounds/`.
+
+### Sheet animation
+- **PWA:** `slide-up` keyframe with `cubic-bezier(0.34,1.56,0.64,1)` (spring-like)
+- **Xcode:** `.sheet()` uses system spring animation automatically. Match with `.animation(.spring(response: 0.3, dampingFraction: 0.7))` for custom elements.
+
+---
+
+## 8. PWA → Xcode Checklist
+
+On handoff weekend, complete in this order:
+
+- [ ] Create new Xcode project (iOS App, SwiftUI, minimum deployment iOS 16.0)
+- [ ] Copy design tokens from §4 into `Colors.swift` extension
+- [ ] Copy `DopamineItems.swift` from `src/data/dopamineItems.js`
+- [ ] Set up SwiftData models from schemas in §3
+- [ ] Build `TaskCardView` first (most reused component)
+- [ ] Build `HomeView` with `NavigationStack`
+- [ ] Build `AddTaskView` (presented via `NavigationLink` or `.navigationDestination`)
+- [ ] Build `DopamineMenuView`
+- [ ] Build `DerailSheet` as `.sheet()` with `DerailModalView`
+- [ ] Build `FloatingButtonsView` in root `ZStack`
+- [ ] Wire `EnvironmentObject` for tasks and derails
+- [ ] Add App Icons (192×192 and 512×512 already in `/public` — export at required iOS sizes)
+- [ ] Add confetti package via Swift Package Manager
+- [ ] Add audio assets and wire `AVAudioPlayer`
+- [ ] Set `Info.plist` — NSMicrophoneUsageDescription (for voice input in v2)
+- [ ] Set minimum deployment target: iOS 16.0
+
+---
+
+## 9. File Structure
+
+```
+dam-app/
+├── index.html                    # PWA entry — maps to @main App struct
+├── vite.config.js                # Build config — not needed in Xcode
+├── package.json
+├── public/
+│   └── manifest.json             # PWA manifest — replaces Info.plist in Xcode
+└── src/
+    ├── main.jsx                  # ReactDOM.createRoot → @main DAMApp.swift
+    ├── App.jsx                   # Root state + routing → ContentView.swift
+    ├── index.css                 # Design tokens → Colors.swift + typography
+    ├── data/
+    │   └── dopamineItems.js      # → DopamineItems.swift (constant data)
+    ├── hooks/
+    │   └── useLocalStorage.js    # → SwiftData @Model + @Environment
+    ├── components/
+    │   ├── FloatingButtons.jsx   # → FloatingButtonsView.swift
+    │   ├── FloatingButtons.css
+    │   ├── TaskCard.jsx          # → TaskCardView.swift
+    │   └── TaskCard.css
+    └── screens/
+        ├── Home.jsx              # → HomeView.swift
+        ├── Home.css
+        ├── AddTask.jsx           # → AddTaskView.swift
+        ├── AddTask.css
+        ├── DopamineMenu.jsx      # → DopamineMenuView.swift
+        ├── DopamineMenu.css
+        ├── DerailModal.jsx       # → DerailSheet presented via .sheet()
+        └── DerailModal.css
+```
+
+---
+
+## 10. Known PWA Limitations (not bugs — intentional v1 scope)
+
+| Limitation | PWA behavior | Xcode solution |
+|---|---|---|
+| No voice input | Text-only textarea | Apple Speech framework (`SFSpeechRecognizer`) |
+| No sounds | Silent | `AVAudioPlayer` with bundled audio assets |
+| No real confetti library | CSS dot animation | ConfettiSwiftUI package |
+| No push notifications | Not implemented | `UserNotifications` framework |
+| No icons (192/512 PNG) | Placeholder — add before deploy | Generate from brand color `#1A56A5` |
+| Hash routing (`#/`) | Required for static PWA | Replace with SwiftUI NavigationStack |
+| localStorage | Browser only | SwiftData |
+| AI task prioritization | Sorted by label + createdAt | Claude API via URLSession |
+
+---
+
+## 11. Running the PWA Locally
+
+```bash
+# Requires Node.js 18+
+npm install
+npm run dev
+# → http://localhost:5173
+
+# Build for production
+npm run build
+npm run preview
+```
+
+*End of BUILD_LOG.md — DAM v1 PWA*

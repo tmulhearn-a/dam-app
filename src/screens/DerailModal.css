@@ -1,0 +1,163 @@
+.derail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  animation: fade-in 0.2s ease both;
+}
+
+.derail-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* ── Sheet ───────────────────────────────── */
+.derail-sheet {
+  position: relative;
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 12px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: slide-up 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding-bottom: max(40px, env(safe-area-inset-bottom));
+}
+
+.derail-sheet__handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 999px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.derail-sheet__icon {
+  font-size: 40px;
+  margin-bottom: 4px;
+}
+
+.derail-sheet__title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.derail-sheet__subtitle {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+/* ── Category grid ───────────────────────── */
+.derail-cats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.derail-cat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.derail-cat:active {
+  background: var(--brand-light);
+  border-color: var(--brand);
+  transform: scale(0.96);
+}
+
+.derail-cat__emoji {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.derail-cat__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+/* ── Skip ────────────────────────────────── */
+.derail-skip {
+  font-size: 14px;
+  color: var(--text-muted);
+  padding: 10px;
+  margin-top: 4px;
+  text-decoration: underline;
+}
+
+/* ── Confirmed state ─────────────────────── */
+.derail-confirm__cat {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.derail-confirm__msg {
+  font-size: 15px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.5;
+  max-width: 300px;
+  padding: 4px 0 8px;
+}
+
+.derail-confirm__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.derail-confirm__dopamine {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: #7C3AED;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.derail-confirm__dopamine:active {
+  background: #6D28D9;
+}
+
+.derail-confirm__done {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--brand-light);
+  color: var(--brand);
+  font-size: 16px;
+  font-weight: 700;
+  border: 2px solid var(--brand);
+}
+
+.derail-confirm__done:active {
+  background: var(--brand);
+  color: #fff;
+}
