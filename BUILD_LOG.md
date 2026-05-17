@@ -421,4 +421,23 @@ prepNote:          string
 - Routine Window (dedicated Add/Edit Routine screen)
 - Task detail view (tap into a card)
 
+---
+
+### Task Row Edit Button — v1.2 (undocumented until now)
+
+**What:** Each task card (all non-completed variants) shows a `✏️` pencil button in the actions row, right of the Done button.
+
+**How it works:**
+- `TaskCard` accepts `onEdit` prop; renders `<button className="btn-edit">✏️</button>` when the prop is present
+- `Home.jsx` passes `onEdit` to every `TaskCard` across all sections (active, next, background, quick-win, behind); completed cards intentionally receive no `onEdit` — no editing a done task
+- `App.jsx` → `handleEditNav(id)` navigates to `/add` with `{ state: { editTask: task } }`
+- `AddTask.jsx` reads `useLocation().state.editTask` on mount to pre-fill all fields; on submit calls `onEdit(id, taskData)` → `updateTask` in App
+- `updateTask` merges new field values onto the existing task, preserving `status`, `hasBeenActive`, `activeStartedAt`, `completedAt`, and any subtask completion state
+
+**Design decision — navigation vs modal overlay:** Edit opens as a full-screen `/add` route, not a floating modal sheet. Rationale: AddTask already has the full field set (category, routine, priority, timing, parent/background toggles, notes). Duplicating that as a modal would be significant complexity for v1. Navigation approach is functionally equivalent and cleaner for Xcode handoff (present as a `.sheet` or `NavigationLink` push in SwiftUI).
+
+**iOS / Xcode handoff:** In SwiftUI, trigger the edit sheet via `.sheet(isPresented:) { AddTaskView(editTask: task) }`. The `AddTaskView` init should accept an optional `Task?` and pre-populate `@State` fields from it.
+
+**Styling:** `.btn-edit` — `border-light` background, `text-secondary` color, 10px × 12px padding, `radius-sm`. Uses `flex-shrink: 0` so it never gets squeezed by longer task names or wider action buttons.
+
 *End of BUILD_LOG.md — DAM v1.2 PWA*
