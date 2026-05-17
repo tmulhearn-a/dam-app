@@ -261,4 +261,164 @@ npm run build
 npm run preview
 ```
 
-*End of BUILD_LOG.md — DAM v1 PWA*
+---
+
+## UPDATE LOG — v1.2 (May 2026)
+
+**PRD version:** v1.2 (PRD sections §19–28 added)  
+**Scope:** Targeted update — no rebuild. All existing functionality preserved.
+
+---
+
+### Files Changed
+
+| File | Change type | Summary |
+|---|---|---|
+| `src/index.css` | Updated | Added 12 section color CSS tokens; updated amber from #F59E0B → #D97706 per PRD §19 |
+| `src/App.jsx` | Major update | New state model, migration, setActiveTask boot logic, conflict resolution, autoFillNext |
+| `src/hooks/useTick.js` | New | 1-second interval hook returning Date.now(); formatElapsed / formatCountdown helpers |
+| `src/data/routines.js` | New | 6 pre-loaded default routines from PRD §23.4 |
+| `src/screens/ConflictModal.jsx/css` | New | "Pick 2" sheet triggered when Next Actions is full during boot |
+| `src/components/TaskCard.jsx` | Major update | 6 variants, live timer, bg countdown, category badge, subtask progress pips |
+| `src/components/TaskCard.css` | Major update | Section-tinted card variants, timer banner, badge styles |
+| `src/screens/Home.jsx` | Major update | 7-section hierarchy, category filter chips, SectionHeader component |
+| `src/screens/Home.css` | Major update | Section color classes, filter row, collapsible toggle styles |
+| `src/screens/AddTask.jsx` | Major update | Category selector, routine picker, 3 collapsible sections, subtask builder, bg toggle |
+| `src/screens/AddTask.css` | Major update | All new field styles: chips, toggle switch, subtask rows, collapsible, timing grid |
+
+---
+
+### Architecture Decisions
+
+#### Task Status Model (replaces `completed: boolean`)
+- **Why:** Multiple home sections need to distinguish states beyond just complete/incomplete. Added `status: 'active' | 'next' | 'background' | 'backlog' | 'completed'`.
+- **Migration:** `migrateTask()` runs on every task that lacks a `status` field. On first mount, a `useEffect` detects legacy tasks and runs `autoFillNext(tasks.map(migrateTask))` once. Idempotent — safe to re-run.
+- **Xcode:** Replace `status` string enum with a Swift `TaskStatus` enum. Migration is not needed in SwiftData (define the model with `status` from the start).
+
+#### `autoFillNext(tasks)`
+- Ensures the "Next Two Actions" section always has up to 2 tasks when slots are available.
+- Called after every mutation: `addTask`, `completeTask`, `setActiveTask`, `resolveConflict`, `advanceBgTask`.
+- Sort order: priority label rank first, then `createdAt` ascending (oldest first).
+- Background tasks (`isBackgroundTask: true`) are excluded from auto-promotion into Next Actions.
+- **Xcode:** Implement as a computed property on the ViewModel that watches the task store.
+
+#### `setActiveTask` Boot Logic
+- Reads current `migratedTasks` from closure (tasks in `useCallback` deps array) to detect conflicts before calling `setTasks`.
+- If current active is a background task, it boots to `'background'` not `'next'`.
+- If `bootedDest === 'next'` and 2 tasks already in Next Actions: sets `conflictModal` state instead of mutating tasks.
+- **Xcode:** Implement as a method on a `TaskStore` ObservableObject.
+
+#### ConflictModal
+- Shows 3 task cards: the booted active task + 2 existing next-action tasks.
+- User taps 2 to select. Tapping a 3rd replaces the first selected (never allows >2).
+- `hasBeenActive` rule: if the dropped task was previously active, it stays in `'next'` rather than `'backlog'`. Edge case: this could temporarily create 3 next tasks, but `autoFillNext` won't demote them (it only promotes, never demotes).
+- **Xcode:** `.sheet(isPresented:)` with a custom `ConflictView`. Use `@State var selectedIds: Set<String>`.
+
+#### Background Task Timer
+- `bgTimerStartedAt` is set to `Date.now()` when the task is added (not when the user presses "start").
+- Countdown = `(bgTimerStartedAt + bgTimerMinutes * 60000) - now`.
+- Expired state shown when countdown reaches 0 (card changes from purple to green "Done" state).
+- "Done early" button calls `advanceBgTask` which completes the task (v1 PWA — chains are v1.3).
+- **Xcode:** Use a `Timer.publish(every: 1, on: .main, in: .common)` in the background task card view.
+
+#### `useTick()` Hook
+- Single `setInterval(1000ms)` per component instance using it.
+- TaskCard calls this for both `'active'` (elapsed timer) and `'background'` (countdown) variants.
+- For components that don't need a live clock (next, behind, quick-win, completed), `useTick` still fires but the result is unused — acceptable overhead for a PWA.
+- **Xcode optimization:** Use a single environment-provided `currentTime` that ticks once per second globally. Avoids N timers for N cards.
+
+---
+
+### New Data Fields (additions to Task schema)
+
+```typescript
+// Added in v1.2
+category:          string | null           // 'Household Chores' | 'Work' | 'Personal Projects' | 'Events' | custom
+status:            'active'|'next'|'background'|'backlog'|'completed'
+hasBeenActive:     boolean                 // once true, task never auto-demotes below 'next'
+activeStartedAt:   number | null           // Date.now() ms when activated
+isParentTask:      boolean
+subtasks:          SubTask[]
+isBackgroundTask:  boolean
+bgTimerMinutes:    number | null
+bgTimerStartedAt:  number | null           // set on task creation when isBackgroundTask
+hardDeadline:      string | null           // ISO date string
+softDeadline:      string | null
+repeat:            'none' | 'daily' | 'weekly'
+notes:             string
+prepNote:          string
+```
+
+```typescript
+// SubTask schema
+{
+  id:              string
+  text:            string
+  order:           'consecutive' | 'parallel'
+  isBackground:    boolean
+  bgTimerMinutes:  number | null
+  duration:        number | null
+  completed:       boolean
+  skipped:         boolean
+}
+```
+
+### New localStorage Keys
+
+| Key | Type | Contents |
+|---|---|---|
+| `dam_custom_categories` | `{name, color}[]` | User-created categories |
+| `dam_custom_routines` | `Routine[]` | User-saved custom routines |
+
+(Existing keys `dam_tasks` and `dam_derails` preserved.)
+
+---
+
+### Home Screen Sections — Xcode Implementation Notes
+
+| Section | Status field | Variant | Color |
+|---|---|---|---|
+| I'm Doing This Now | `'active'` | `task-card--active` | `#1A56A5` |
+| Next Two Actions | `'next'` (max 2) | `task-card--next` | `#1A56A5` |
+| Running in Background | `'background'` | `task-card--background` | `#7C3AED` |
+| Quick Wins | `'backlog'` + `duration <= 5` | `task-card--quick-win` | `#059669` |
+| On Track | TBD v1.3 | — | `#0891B2` |
+| Behind On | `'backlog'` + `duration > 5 or null` | `task-card--behind` | `#D97706` |
+| Completed Today | `'completed'` + today | `task-card--completed` | `#64748B` |
+
+**Category filter:** Applied to "Quick Wins" and "Behind On" sections only. Active, Next, Background, and Completed Today always show all tasks regardless of filter.
+
+---
+
+### Add Task Screen — Xcode Implementation Notes
+
+**Section order (top to bottom):**
+1. Category chips — horizontal scroll; `LazyHStack` in SwiftUI
+2. Routine picker — dropdown sheet; `.confirmationDialog` or custom `.sheet`
+3. Task text — `TextField` multiline
+4. Priority 2×2 grid — `LazyVGrid(columns: [GridItem(), GridItem()])`
+5. "What kind of task?" — `DisclosureGroup` in SwiftUI
+6. "Timing" — `DisclosureGroup`
+7. "Notes" — `DisclosureGroup`
+8. Submit button — full-width `.buttonStyle`
+
+**Routine picker pre-fill behavior:** Selecting a routine calls `applyRoutine()` which sets `text`, `category`, `isParentTask = true`, and `subtasks` from the routine's step list. User can edit before submitting — the routine is not modified (PRD §25.2: "Routine changes apply to future uses only").
+
+**Subtask builder:** Up/down arrow buttons for reorder (drag-and-drop deferred to Xcode — use `.onMove` in a `List` with `EditButton`).
+
+**Custom category creator:** 8-swatch color palette. Saves to `dam_custom_categories`. Appears in all category selectors throughout app.
+
+**Save as Routine:** Button appears at the bottom of the subtask builder when subtasks have content. Saves to `dam_custom_routines` with current task name, category, and subtask config.
+
+---
+
+### Deferred to v1.3 (per PRD §28)
+
+- Background task chain advancement (currently "done early" = complete the whole task)
+- Subtask skip destination (currently skipped subtasks are tracked but destination logic TBD)
+- On Track section criteria and task population
+- Quick Wins exact threshold (currently 5 min; final value TBD)
+- Routine Window (dedicated Add/Edit Routine screen)
+- Task detail view (tap into a card)
+
+*End of BUILD_LOG.md — DAM v1.2 PWA*

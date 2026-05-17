@@ -15,8 +15,22 @@
   --back-burner:  #9CA3AF;
   --back-burner-bg: #F9FAFB;
 
-  /* Behind / amber */
-  --amber:        #F59E0B;
+  /* Section colors (v1.2 — PRD §19 / §24) */
+  --section-blue:       #1A56A5;
+  --section-blue-bg:    #EEF4FF;
+  --section-purple:     #7C3AED;
+  --section-purple-bg:  #F5F3FF;
+  --section-green:      #059669;
+  --section-green-bg:   #ECFDF5;
+  --section-teal:       #0891B2;
+  --section-teal-bg:    #ECFEFF;
+  --section-amber:      #D97706;
+  --section-amber-bg:   #FFFBEB;
+  --section-slate:      #64748B;
+  --section-slate-bg:   #F8FAFC;
+
+  /* Behind / amber — updated to #D97706 per PRD v1.2 §19 */
+  --amber:        #D97706;
   --amber-bg:     #FFFBEB;
 
   /* Surfaces */

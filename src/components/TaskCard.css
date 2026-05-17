@@ -1,7 +1,7 @@
 .task-card {
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 16px;
+  padding: 14px 16px;
   box-shadow: var(--shadow);
   position: relative;
   overflow: hidden;
@@ -9,42 +9,158 @@
   transition: box-shadow 0.2s;
 }
 
-.task-card--next-action {
-  border-left: 4px solid var(--brand);
+/* ── Section variants ────────────────────── */
+.task-card--active {
+  border-left: 4px solid var(--section-blue);
+  background: var(--section-blue-bg);
+}
+
+.task-card--next {
+  border-left: 4px solid var(--section-blue);
+}
+
+.task-card--background {
+  border-left: 4px solid var(--section-purple);
+  background: var(--section-purple-bg);
+}
+
+.task-card--quick-win {
+  border-left: 4px solid var(--section-green);
+  background: var(--section-green-bg);
 }
 
 .task-card--behind {
-  border-left: 4px solid var(--amber);
-  background: var(--amber-bg);
+  border-left: 4px solid var(--section-amber);
+  background: var(--section-amber-bg);
 }
 
-.task-card--doing {
-  border-left-color: var(--easy-ball);
-  box-shadow: 0 0 0 2px rgba(16,185,129,0.2), var(--shadow-md);
+.task-card--completed {
+  border-left: 4px solid var(--section-slate);
+  background: var(--section-slate-bg);
+  opacity: 0.8;
 }
 
 .task-card--celebrate {
   animation: pop-in 0.4s ease both;
 }
 
+/* ── Timer banner ────────────────────────── */
+.task-card__timer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-xs);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.task-card__timer--active {
+  background: rgba(26,86,165,0.1);
+  color: var(--section-blue);
+}
+
+.task-card__timer--bg {
+  background: rgba(124,58,237,0.1);
+  color: var(--section-purple);
+}
+
+.task-card__timer--expired {
+  background: rgba(5,150,105,0.1);
+  color: var(--section-green);
+}
+
+.task-card__timer-icon {
+  font-size: 14px;
+}
+
+.task-card__timer-val {
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+
+.task-card__timer-label {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
 /* ── Top row ─────────────────────────────── */
 .task-card__top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 8px;
   margin-bottom: 8px;
+}
+
+.task-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  flex: 1;
 }
 
 .task-card__duration {
   font-size: 12px;
   color: var(--text-muted);
   font-weight: 500;
+  white-space: nowrap;
+  padding-top: 2px;
 }
 
-.task-card__doing-label {
-  font-size: 13px;
-  color: var(--easy-ball);
+/* ── Badges ──────────────────────────────── */
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.priority-badge--on-fire    { background: var(--on-fire-bg);    color: var(--on-fire); }
+.priority-badge--big-rock   { background: var(--big-rock-bg);   color: var(--big-rock); }
+.priority-badge--easy-ball  { background: var(--easy-ball-bg);  color: var(--easy-ball); }
+.priority-badge--back-burner{ background: var(--back-burner-bg);color: var(--back-burner); }
+
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
   font-weight: 600;
+  background: var(--border-light);
+  color: var(--text-secondary);
+}
+
+.task-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.task-badge--parent {
+  background: var(--brand-light);
+  color: var(--brand);
+}
+
+.task-badge--bg {
+  background: var(--section-purple-bg);
+  color: var(--section-purple);
 }
 
 /* ── Text ────────────────────────────────── */
@@ -53,7 +169,47 @@
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.4;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+}
+
+.task-card__text--done {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* ── Subtask progress bar ────────────────── */
+.task-card__subtask-bar {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.task-card__subtask-pip {
+  width: 18px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.task-card__subtask-pip--done { background: var(--section-green); }
+.task-card__subtask-pip--skip { background: var(--text-muted); }
+
+.task-card__subtask-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 4px;
+  font-weight: 500;
+}
+
+/* ── Completed at ────────────────────────── */
+.task-card__completed-at {
+  font-size: 12px;
+  color: var(--section-slate);
+  font-weight: 500;
+  margin-bottom: 4px;
 }
 
 /* ── Actions ─────────────────────────────── */
@@ -65,7 +221,7 @@
 
 .btn-doing {
   flex: 1;
-  padding: 10px 16px;
+  padding: 10px 14px;
   border-radius: var(--radius-sm);
   background: var(--brand);
   color: #fff;
@@ -76,6 +232,22 @@
 
 .btn-doing:active {
   background: var(--brand-dark);
+  transform: scale(0.97);
+}
+
+.btn-bg-done {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--section-purple);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-bg-done:active {
+  background: #6D28D9;
   transform: scale(0.97);
 }
 
@@ -95,23 +267,6 @@
   color: #fff;
   transform: scale(0.97);
 }
-
-/* ── Priority badge ──────────────────────── */
-.priority-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.priority-badge--on-fire    { background: var(--on-fire-bg);    color: var(--on-fire); }
-.priority-badge--big-rock   { background: var(--big-rock-bg);   color: var(--big-rock); }
-.priority-badge--easy-ball  { background: var(--easy-ball-bg);  color: var(--easy-ball); }
-.priority-badge--back-burner{ background: var(--back-burner-bg);color: var(--back-burner); }
 
 /* ── Confetti ────────────────────────────── */
 .confetti {

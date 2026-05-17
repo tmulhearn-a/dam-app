@@ -43,83 +43,182 @@
   font-style: italic;
 }
 
+/* ── Category filter row ─────────────────── */
+.home__filter-row {
+  display: flex;
+  gap: 6px;
+  padding: 10px 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.home__filter-row::-webkit-scrollbar { display: none; }
+
+.home__filter-chip {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--bg);
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.home__filter-chip--active {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+
 /* ── Main ────────────────────────────────── */
 .home__main {
   flex: 1;
-  padding: 20px 16px;
+  padding: 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 8px;
 }
 
-/* ── Section ─────────────────────────────── */
-.home__section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.home__section-label {
+/* ── Section headers ─────────────────────── */
+.home__section-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-secondary);
+  padding: 10px 0 2px;
+  margin-top: 8px;
 }
 
-.home__section-label--amber {
-  color: var(--amber);
+.home__section-header:first-child {
+  margin-top: 0;
+}
+
+.home__section-header--blue   { color: var(--section-blue); }
+.home__section-header--purple { color: var(--section-purple); }
+.home__section-header--green  { color: var(--section-green); }
+.home__section-header--teal   { color: var(--section-teal); }
+.home__section-header--amber  { color: var(--section-amber); }
+.home__section-header--slate  { color: var(--section-slate); }
+
+.home__section-header-label {
+  flex: 1;
+}
+
+.home__section-header-count {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.6;
+  letter-spacing: 0;
+}
+
+.home__section-header-note {
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.6;
+  letter-spacing: 0.02em;
+  text-transform: none;
 }
 
 .home__section-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.home__section-dot--brand { background: var(--brand); }
-.home__section-dot--amber { background: var(--amber); }
+.home__section-dot--blue   { background: var(--section-blue); }
+.home__section-dot--purple { background: var(--section-purple); }
+.home__section-dot--green  { background: var(--section-green); }
+.home__section-dot--teal   { background: var(--section-teal); }
+.home__section-dot--amber  { background: var(--section-amber); }
+.home__section-dot--slate  { background: var(--section-slate); }
 
-.home__cards {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.home__all-done {
-  text-align: center;
-  padding: 24px;
-  color: var(--text-secondary);
-  font-size: 15px;
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-/* ── Behind toggle ───────────────────────── */
-.home__behind-toggle {
+/* ── Collapsible section toggles ─────────── */
+.home__section-toggle {
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 12px 16px;
-  background: var(--amber-bg);
-  border: 1.5px solid rgba(245,158,11,0.25);
+  padding: 11px 14px;
   border-radius: var(--radius-sm);
   text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-top: 8px;
+  transition: background 0.15s;
 }
+
+.home__section-toggle--amber {
+  background: var(--section-amber-bg);
+  color: var(--section-amber);
+  border: 1.5px solid rgba(217,119,6,0.2);
+}
+
+.home__section-toggle--slate {
+  background: var(--section-slate-bg);
+  color: var(--section-slate);
+  border: 1.5px solid rgba(100,116,139,0.2);
+}
+
+.home__section-toggle-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.home__section-toggle-dot--amber { background: var(--section-amber); }
+.home__section-toggle-dot--slate { background: var(--section-slate); }
 
 .home__chevron {
   margin-left: auto;
-  font-size: 11px;
-  color: var(--amber);
+  font-size: 10px;
+  opacity: 0.7;
 }
 
-/* ── Empty state ─────────────────────────── */
+/* ── Cards container ─────────────────────── */
+.home__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Empty section placeholder ───────────── */
+.home__empty-section {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.home__empty-section--blue {
+  background: var(--section-blue-bg);
+  color: var(--section-blue);
+  border: 1px solid rgba(26,86,165,0.15);
+}
+
+.home__empty-section--teal {
+  background: var(--section-teal-bg);
+  color: var(--section-teal);
+  border: 1px solid rgba(8,145,178,0.15);
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* ── Empty state (no tasks at all) ──────── */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -149,7 +248,6 @@
   margin-top: 4px;
 }
 
-/* Ghost card preview */
 .empty-state__ghost {
   width: 100%;
   margin: 8px 0;
